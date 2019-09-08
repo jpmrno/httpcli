@@ -45,7 +45,8 @@ func (c *Context) Next() {
 
 	c.abortedIndex = notAbortedIndex
 	c.error = nil
-	for c.currentIndex < len(c.handlers) && !c.IsAborted() {
+	c.Response = nil
+	for c.currentIndex < len(c.handlers) && c.error == nil {
 		c.handlers[c.currentIndex](c)
 		c.currentIndex++
 	}
@@ -54,14 +55,18 @@ func (c *Context) Next() {
 	c.currentIndex = currentIndex
 }
 
+func (c *Context) Stop(res *http.Response) {
+	if res == nil {
+		panic("res is nil")
+	}
+	c.abortedIndex = c.currentIndex
+	c.Response = res
+}
+
 func (c *Context) Abort(err error) {
 	if err == nil {
 		panic("err is nil")
 	}
 	c.abortedIndex = c.currentIndex
 	c.error = err
-}
-
-func (c *Context) IsAborted() bool {
-	return c.error != nil
 }
